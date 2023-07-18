@@ -5,10 +5,13 @@ import com.employwise.employwisebe.exceptions.ResourceNotFoundException;
 import com.employwise.employwisebe.payload.EmployeeDto;
 import com.employwise.employwisebe.repo.EmployeeRepo;
 import com.employwise.employwisebe.service.EmployeeService;
+import com.employwise.employwisebe.service.FileService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,6 +24,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private FileService fileService;
 
     @Override
     public EmployeeDto addEmployee(EmployeeDto employeeDto) {
@@ -72,5 +78,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee fetchedEmployee = this.employeeRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee", "employee_id", id));
 
         this.employeeRepo.delete(fetchedEmployee);
+    }
+
+    @Override
+    public EmployeeDto uploadImage(String id, String path, MultipartFile file) throws IOException {
+        Employee employee = this.employeeRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Provider", "provider id", id));
+        String providerImage = this.fileService.uploadImage(path, file);
+        employee.setProfileImage(providerImage);
+        this.employeeRepo.save(employee);
+
+        return this.modelMapper.map(employee, EmployeeDto.class);
     }
 }

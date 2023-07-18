@@ -4,15 +4,21 @@ import com.employwise.employwisebe.payload.ApiResponse;
 import com.employwise.employwisebe.payload.EmployeeDto;
 import com.employwise.employwisebe.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/employee")
 public class EmployeeController {
+
+    @Value("${project.providerImages}")
+    private String path;
 
     @Autowired
     private EmployeeService employeeService;
@@ -50,10 +56,19 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{employeeId}")
-    public ResponseEntity<ApiResponse>deleteEmployeeById(@PathVariable("employeeId") String employeeId){
+    public ResponseEntity<ApiResponse> deleteEmployeeById(@PathVariable("employeeId") String employeeId) {
 
         this.employeeService.deleteEmployeeById(employeeId);
 
-        return new ResponseEntity<>(new ApiResponse("Employee was deeted!",true),HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse("Employee was deeted!", true), HttpStatus.OK);
+    }
+
+    @PostMapping("/uploadImage/{providerId}")
+    public ResponseEntity<String> uploadProviderImage(@PathVariable String empId,
+                                                      @RequestParam("image") MultipartFile image) throws IOException {
+
+        this.employeeService.uploadImage(empId, path, image);
+
+        return new ResponseEntity<>("image uploaded", HttpStatus.OK);
     }
 }
